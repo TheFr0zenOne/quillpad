@@ -14,7 +14,6 @@ import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
-import org.qosp.notes.BuildConfig
 import org.qosp.notes.ui.MainActivity
 import org.qosp.notes.ui.theme.QuillpadTheme
 
@@ -25,13 +24,13 @@ class LauncherActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        if (BuildConfig.DEBUG.not()) {
+//        if (BuildConfig.DEBUG.not()) {
             lifecycleScope.launch {
                 val isCurrentVersionInstalled = viewModel.isCurrentVersionInstalled.firstOrNull() == true
                 Log.d("LauncherActivity", "isNewInstall: ${!isCurrentVersionInstalled}.")
                 if (isCurrentVersionInstalled) proceedToMainActivity(persistNewVersion = false)
             }
-        }
+//        }
         setContent {
             QuillpadTheme {
                 // A surface container using the 'background' color from the theme

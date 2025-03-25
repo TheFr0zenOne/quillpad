@@ -8,22 +8,35 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import org.qosp.notes.data.AppDatabase
+import org.qosp.notes.data.DatabaseVersionChecker
 import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
 object DatabaseModule {
+    private var databaseInstance: AppDatabase? = null
 
     @Provides
     @Singleton
     fun provideRoomDatabase(
         @ApplicationContext context: Context,
+        databaseVersionChecker: DatabaseVersionChecker
     ): AppDatabase {
-        return Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME)
-            // we don't want to silently wipe user data in case DB migration fails,
-            // rather let the app crash
-            .addMigrations(AppDatabase.MIGRATION_1_2)
-            .addMigrations(AppDatabase.MIGRATION_2_3)
-            .build()
+        // Return existing instance if available
+        databaseInstance?.let { return it }
+
+        // Check if we need to backup the database before applying migrations
+        databaseVersionChecker.checkAndHandleDatabaseMigration()
+
+        // Create a new instance
+        val builder = Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME)
+        // we don't want to silently wipe user data in case DB migration fails,
+        // rather let the app crash
+
+        // Always add migrations
+        builder.addMigrations(AppDatabase.MIGRATION_1_2)
+        builder.addMigrations(AppDatabase.MIGRATION_2_3)
+
+        return builder.build().also { databaseInstance = it }
     }
 }
