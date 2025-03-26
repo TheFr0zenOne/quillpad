@@ -1,6 +1,7 @@
 package org.qosp.notes.di
 
 import android.content.Context
+import android.util.Log
 import androidx.room.Room
 import dagger.Module
 import dagger.Provides
@@ -26,7 +27,12 @@ object DatabaseModule {
         databaseInstance?.let { return it }
 
         // Check if we need to backup the database before applying migrations
-        databaseVersionChecker.checkAndHandleDatabaseMigration()
+        // or restore from a backup if the disk version is higher than the app version
+        val migrationResult = databaseVersionChecker.checkAndHandleDatabaseMigration()
+        if (!migrationResult) {
+            // If migration/restoration failed, log a warning
+            Log.w("DatabaseModule", "Database migration or restoration failed")
+        }
 
         // Create a new instance
         val builder = Room.databaseBuilder(context, AppDatabase::class.java, AppDatabase.DB_NAME)
